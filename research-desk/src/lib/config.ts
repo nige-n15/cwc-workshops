@@ -7,7 +7,7 @@
  * The desk's Anthropic resources (agents, environment, skill, memory store)
  * are created once from the Setup tab and referenced by id afterwards — they
  * are persistent, versioned objects, not per-run state. desk.json holds those
- * ids plus the EDGAR identity; it contains no secrets.
+ * ids; it contains no secrets.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -18,14 +18,13 @@ export const DATA_DIR = process.env.DESK_DATA_DIR ?? REPO_ROOT;
 export const DESK_FILE = join(DATA_DIR, "desk.json");
 export const OUTPUTS_DIR = join(DATA_DIR, "outputs");
 export const PROMPTS_DIR = join(REPO_ROOT, "prompts");
-export const SKILL_DIR = join(REPO_ROOT, "skills", "edgartools");
-export const DEFAULT_WATCHLIST = join(REPO_ROOT, "watchlists", "semis.txt");
+export const SKILL_DIR = join(REPO_ROOT, "skills", "kraken");
+export const DEFAULT_WATCHLIST = join(REPO_ROOT, "watchlists", "top10-usd.txt");
 
 export const MODEL = "claude-opus-4-8";
 export const DEFAULT_CONCURRENCY = Number(process.env.DESK_CONCURRENCY ?? 4);
 
 export interface DeskConfig {
-  edgar_identity: string;
   environment_id: string;
   memory_store_id: string;
   skill_id: string;
@@ -39,7 +38,6 @@ export interface DeskConfig {
 }
 
 const EMPTY: DeskConfig = {
-  edgar_identity: "",
   environment_id: "",
   memory_store_id: "",
   skill_id: "",
@@ -76,16 +74,6 @@ export function isProvisioned(config: DeskConfig): boolean {
 /** Act 1 state: there is an agent to chat with, but the desk isn't staffed yet. */
 export function isHelloProvisioned(config: DeskConfig): boolean {
   return Boolean(config.environment_id && config.head_agent_id);
-}
-
-export function edgarIdentity(): string {
-  const identity = (process.env.EDGAR_IDENTITY ?? "").trim() || loadConfig().edgar_identity;
-  if (!identity) {
-    throw new Error(
-      'EDGAR_IDENTITY is not set — the SEC requires a contact identity ("Your Name you@example.com") on automated requests',
-    );
-  }
-  return identity;
 }
 
 export function loadWatchlist(path?: string): string[] {

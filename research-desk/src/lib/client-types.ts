@@ -11,7 +11,6 @@ export interface DeskStatus {
   head_session_url: string | null;
   watchlist: string[];
   credential_present: boolean;
-  edgar_identity_present: boolean;
 }
 
 export interface SessionEvent {

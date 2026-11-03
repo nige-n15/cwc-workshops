@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Analyze tickers directly, without involving the head of research — used by
- * Act 2 (one company, observed closely) and the Scorecards tab. Starts the
+ * Act 3 (one asset, observed closely) and the Scorecards tab. Starts the
  * work server-side and returns immediately; progress is visible via
  * /api/desk/dispatches.
  */

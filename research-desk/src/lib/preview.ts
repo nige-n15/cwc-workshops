@@ -9,7 +9,7 @@
  */
 
 import { MANAGED_AGENTS_BETA, restAuthHeaders } from "./anthropic";
-import { edgarIdentity, loadConfig, loadWatchlist } from "./config";
+import { loadConfig, loadWatchlist } from "./config";
 import { loadPrompt } from "./prompts";
 import { MEMORY_MOUNT_INSTRUCTIONS } from "./analysis";
 
@@ -66,11 +66,10 @@ export async function createMemoDeployment(cron = "0 13 * * 1"): Promise<unknown
   }
   const prompt = loadPrompt("memo_task.md", {
     watchlist: loadWatchlist().join(", "),
-    edgar_identity: edgarIdentity(),
   });
   return previewRequest("POST", "/v1/deployments", {
     body: {
-      name: "research-desk-weekly-memo",
+      name: "crypto-desk-weekly-memo",
       agent: cfg.analyst_agent_id,
       environment_id: cfg.environment_id,
       schedule: { type: "cron", expression: cron, timezone: "UTC" },

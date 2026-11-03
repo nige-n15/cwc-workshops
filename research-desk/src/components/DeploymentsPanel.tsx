@@ -91,7 +91,7 @@ export default function DeploymentsPanel({ provisioned }: { provisioned: boolean
         </div>
       </div>
       <p className="muted">
-        The standing desk: a scheduled run that checks the watchlist for new filings, refreshes the desk memory, and
+        The standing desk: a scheduled run that checks the watchlist for what moved this week, refreshes the desk memory, and
         writes a weekly memo. Deployments are a research-preview surface.
       </p>
 

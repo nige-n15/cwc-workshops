@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     const response = (await listDeployments(queryParams(request))) as { data?: DeploymentLike[] };
     const data = (response.data ?? []).filter(
       (deployment) =>
-        deployment.id === cfg.deployment_id || (deployment.name ?? "").startsWith("research-desk"),
+        deployment.id === cfg.deployment_id || (deployment.name ?? "").startsWith("crypto-desk"),
     );
     return { ...response, data };
   });

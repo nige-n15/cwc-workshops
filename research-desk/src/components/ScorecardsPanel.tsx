@@ -11,14 +11,14 @@ import { api, type DispatchView } from "@/lib/client-types";
 type Scorecard = Record<string, unknown>;
 
 const COLUMNS: Array<{ key: string; label: string; numeric?: boolean }> = [
-  { key: "ticker", label: "Ticker" },
-  { key: "filing_form", label: "Filing" },
-  { key: "fiscal_period", label: "Period" },
-  { key: "revenue_usd_m", label: "Revenue ($M)", numeric: true },
-  { key: "revenue_yoy_pct", label: "YoY %", numeric: true },
-  { key: "gross_margin_pct", label: "GM %", numeric: true },
-  { key: "operating_margin_pct", label: "OM %", numeric: true },
-  { key: "guidance_tone", label: "Guidance" },
+  { key: "ticker", label: "Asset" },
+  { key: "price_usd", label: "Price ($)", numeric: true },
+  { key: "return_7d_pct", label: "7d %", numeric: true },
+  { key: "return_30d_pct", label: "30d %", numeric: true },
+  { key: "volatility_30d_pct", label: "Vol 30d %", numeric: true },
+  { key: "volume_24h_usd_k", label: "24h vol ($k)", numeric: true },
+  { key: "spread_bps", label: "Spread (bps)", numeric: true },
+  { key: "trend", label: "Trend" },
   { key: "confidence", label: "Confidence" },
   { key: "one_line_thesis", label: "Thesis" },
 ];
@@ -26,7 +26,7 @@ const COLUMNS: Array<{ key: string; label: string; numeric?: boolean }> = [
 export default function ScorecardsPanel({ provisioned }: { provisioned: boolean }) {
   const [scorecards, setScorecards] = useState<Scorecard[]>([]);
   const [dispatches, setDispatches] = useState<DispatchView[]>([]);
-  const [tickers, setTickers] = useState("NVDA");
+  const [tickers, setTickers] = useState("BTC");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -85,7 +85,7 @@ export default function ScorecardsPanel({ provisioned }: { provisioned: boolean 
 
       <div className="row wrap">
         <input
-          placeholder="Tickers, e.g. NVDA or NVDA, AMD, MU"
+          placeholder="Assets vs USD, e.g. BTC or BTC, ETH, SOL"
           value={tickers}
           onChange={(e) => setTickers(e.target.value)}
           style={{ minWidth: "18rem" }}
@@ -101,7 +101,7 @@ export default function ScorecardsPanel({ provisioned }: { provisioned: boolean 
       <DispatchPanel dispatches={dispatches.filter((dispatch) => dispatch.status === "running")} />
 
       {scorecards.length === 0 ? (
-        <div className="empty">No scorecards yet — analyze a ticker above, or ask the Desk to sweep the watchlist.</div>
+        <div className="empty">No scorecards yet — analyze an asset above, or ask the Desk to sweep the watchlist.</div>
       ) : (
         <div style={{ overflowX: "auto", marginTop: "1rem" }}>
           <table>

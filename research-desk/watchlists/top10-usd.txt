@@ -1,0 +1,14 @@
+# Top ten crypto assets by market cap (CoinGecko, 2026-11-03) that have a USD pair on Kraken.
+# Stablecoins are excluded, as is FIGR_HELOC (a tokenised loan product, not a traded coin).
+# Note: Kraken disables XMR trading for UK customers; its public market data still works.
+# One symbol per line, analyzed against USD; lines starting with # are ignored.
+BTC
+ETH
+BNB
+XRP
+SOL
+TRX
+ZEC
+HYPE
+XMR
+DOGE

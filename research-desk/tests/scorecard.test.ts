@@ -6,47 +6,49 @@ import { describe, expect, it } from "vitest";
 import { csvCell, scorecardsToCsv, validateScorecard, type Scorecard } from "../src/lib/scorecard";
 
 const GOOD: Record<string, unknown> = {
-  ticker: "NVDA",
-  company_name: "NVIDIA",
-  filing_form: "10-K",
-  fiscal_period: "FY2026",
-  filing_date: "2026-02-20",
-  revenue_usd_m: 130000,
-  revenue_yoy_pct: 110.5,
-  gross_margin_pct: 75.2,
-  operating_margin_pct: 62.1,
-  guidance_tone: "positive",
-  top_risks: ["supply concentration", "export controls"],
-  risk_factor_changes: ["new export-control language"],
+  ticker: "BTC",
+  asset_name: "Bitcoin",
+  pair: "XBTUSD",
+  as_of: "2026-11-03T21:00:00Z",
+  price_usd: 77796.0,
+  return_7d_pct: -2.1,
+  return_30d_pct: 4.8,
+  return_90d_pct: -11.3,
+  volatility_30d_pct: 41.5,
+  volume_24h_usd_k: 170170.0,
+  spread_bps: 1.7,
+  depth_1pct_usd_k: 2100,
+  trend: "range",
+  key_risks: ["thin book outside US hours", "macro risk-off"],
+  changes_since_last_note: ["first note for this asset"],
   red_flags: [],
-  one_line_thesis: "Data-center demand still outrunning supply.",
-  confidence: "high",
-  memory_note_path: "/companies/NVDA/FY2026-10K.md",
-  embedded_instructions_flag: false,
+  one_line_thesis: "Range-bound with deep USD liquidity.",
+  confidence: "medium",
+  memory_note_path: "/assets/BTC/2026-11-03.md",
 };
 
 describe("validateScorecard", () => {
   it("accepts a complete scorecard", () => {
     const { scorecard, problems } = validateScorecard(GOOD);
     expect(problems).toEqual([]);
-    expect(scorecard?.ticker).toBe("NVDA");
+    expect(scorecard?.ticker).toBe("BTC");
   });
 
   it("rejects a scorecard missing required fields", () => {
-    const { scorecard, problems } = validateScorecard({ ticker: "NVDA" });
+    const { scorecard, problems } = validateScorecard({ ticker: "BTC" });
     expect(scorecard).toBeNull();
     expect(problems.length).toBeGreaterThan(0);
   });
 
   it("rejects bad enums and types", () => {
-    const { problems } = validateScorecard({ ...GOOD, guidance_tone: "amazing", revenue_usd_m: "lots" });
-    expect(problems.join(" ")).toContain("guidance_tone");
-    expect(problems.join(" ")).toContain("revenue_usd_m");
+    const { problems } = validateScorecard({ ...GOOD, trend: "moon", price_usd: "lots" });
+    expect(problems.join(" ")).toContain("trend");
+    expect(problems.join(" ")).toContain("price_usd");
   });
 
   it("caps list lengths", () => {
-    const { scorecard } = validateScorecard({ ...GOOD, top_risks: ["a", "b", "c", "d", "e", "f", "g"] });
-    expect(scorecard?.top_risks.length).toBeLessThanOrEqual(5);
+    const { scorecard } = validateScorecard({ ...GOOD, key_risks: ["a", "b", "c", "d", "e", "f", "g"] });
+    expect(scorecard?.key_risks.length).toBeLessThanOrEqual(5);
   });
 });
 
@@ -63,6 +65,6 @@ describe("csv output", () => {
     const lines = csv.trim().split("\n");
     expect(lines).toHaveLength(2);
     expect(lines[0]).toContain("ticker");
-    expect(lines[1]).toContain("NVDA");
+    expect(lines[1]).toContain("BTC");
   });
 });

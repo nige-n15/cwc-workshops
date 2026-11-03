@@ -29,10 +29,10 @@ export async function GET() {
       id ? { label, id, url: consoleUrl(kind, id) } : null;
     const resources: ResourceLink[] = [
       link("Environment", "environments", config.environment_id),
-      link("Skill — edgartools manual", "skills", config.skill_id),
+      link("Skill — kraken manual", "skills", config.skill_id),
       link("Agent — financials extractor", "agents", config.financials_agent_id),
       link("Agent — risk analyst", "agents", config.risk_agent_id),
-      link("Agent — filing analyst (coordinator)", "agents", config.analyst_agent_id),
+      link("Agent — asset analyst (coordinator)", "agents", config.analyst_agent_id),
       link("Agent — head of research", "agents", config.head_agent_id),
       link("Memory store — desk-memory", "memory-stores", config.memory_store_id),
       link("Head of research conversation", "sessions", config.head_session_id),
@@ -47,7 +47,6 @@ export async function GET() {
       head_session_url: config.head_session_id ? sessionUrl(config.head_session_id) : null,
       watchlist: loadWatchlist(),
       credential_present: Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN),
-      edgar_identity_present: Boolean(process.env.EDGAR_IDENTITY || config.edgar_identity),
     };
   });
 }

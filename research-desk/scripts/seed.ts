@@ -6,9 +6,9 @@
  * Scorecards table, the desk memory, and a finished session in the Console all
  * have something to show before the first live run.
  *
- *   npm run seed                       # analyzes NVDA
- *   npm run seed -- NVDA AMD           # analyzes several tickers (sequentially)
- *   npm run seed -- NVDA AMD --reset   # …then restores the workshop stubs and
+ *   npm run seed                       # analyzes BTC (vs USD)
+ *   npm run seed -- BTC ETH           # analyzes several tickers (sequentially)
+ *   npm run seed -- BTC ETH --reset   # …then restores the workshop stubs and
  *                                      # blanks the head conversation, ready to present
  *
  * --reset is the "night before" mode: after seeding it clears head_session_id
@@ -41,13 +41,13 @@ if (existsSync(envFile)) {
 }
 
 const MEMORY_INSTRUCTIONS =
-  "The desk's shared research memory. Before analyzing a company, read your prior notes for it under " +
-  "/companies/<TICKER>/ if any exist. After analyzing, write or update one note per filing at " +
-  "/companies/<TICKER>/<fiscal-period>-<form>.md using the note template from your instructions.";
+  "The desk's shared research memory. Before analyzing an asset, read your prior notes for it under " +
+  "/assets/<TICKER>/ if any exist. After analyzing, write one dated note at " +
+  "/assets/<TICKER>/<YYYY-MM-DD>.md using the note template from your instructions.";
 
 async function main(): Promise<void> {
   const { getClient, MANAGED_AGENTS_BETA } = await import("../src/lib/anthropic");
-  const { DESK_FILE, OUTPUTS_DIR, edgarIdentity, loadConfig, saveConfig, sessionUrl } = await import("../src/lib/config");
+  const { DESK_FILE, OUTPUTS_DIR, loadConfig, saveConfig, sessionUrl } = await import("../src/lib/config");
   const { loadPrompt } = await import("../src/lib/prompts");
   const { validateScorecard } = await import("../src/lib/scorecard");
 
@@ -59,7 +59,7 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const reset = args.includes("--reset");
   const tickers = args.filter((arg) => !arg.startsWith("--")).map((ticker) => ticker.toUpperCase());
-  if (tickers.length === 0) tickers.push("NVDA");
+  if (tickers.length === 0) tickers.push("BTC");
 
   // One analyst session per ticker, all in flight at once — each takes several
   // minutes, so seeding two or three tickers costs the same wall clock as one.
@@ -67,7 +67,7 @@ async function main(): Promise<void> {
     const session = await client.beta.sessions.create({
       agent: cfg.analyst_agent_id,
       environment_id: cfg.environment_id,
-      title: `Filing analysis: ${ticker}`,
+      title: `Market analysis: ${ticker}/USD`,
       metadata: { ticker, kind: "analysis" },
       resources: [
         {
@@ -91,8 +91,7 @@ async function main(): Promise<void> {
           type: "user.define_outcome",
           description: loadPrompt("analyze_task.md", {
             ticker,
-            focus: "general fundamentals and risk",
-            edgar_identity: edgarIdentity(),
+            focus: "trend, volatility and liquidity",
           }),
           rubric: { type: "text", content: loadPrompt("analyze_rubric.md", { ticker }) },
           max_iterations: 2,

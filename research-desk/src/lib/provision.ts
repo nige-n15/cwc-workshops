@@ -7,7 +7,7 @@
  * Two stages, matching the workshop:
  *   - provisionHello (Act 1): the environment plus the head-of-research agent
  *     with nothing but a system prompt — just enough to say hello to.
- *   - provisionDesk (Act 2): the edgartools skill, the two specialists, the
+ *   - provisionDesk (Act 2): the kraken skill, the two specialists, the
  *     analyst coordinator, and the memory store — and the SAME head agent is
  *     updated in place (a new version) to gain its full prompt and the
  *     dispatch_analysts custom tool.
@@ -19,15 +19,13 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 
 import { getClient, restAuthHeaders, SKILLS_BETA } from "./anthropic";
-import { MODEL, SKILL_DIR, edgarIdentity, loadConfig, saveConfig, type DeskConfig } from "./config";
+import { MODEL, SKILL_DIR, loadConfig, saveConfig, type DeskConfig } from "./config";
 import { logEvent } from "./logger";
 import { loadPrompt } from "./prompts";
 
 const ALLOWED_HOSTS = [
-  // SEC EDGAR
-  "www.sec.gov",
-  "efts.sec.gov",
-  "data.sec.gov",
+  // Kraken public market data (no key, read-only)
+  "api.kraken.com",
   // package installs at session start
   "pypi.org",
   "files.pythonhosted.org",
@@ -43,13 +41,13 @@ const ALLOWED_HOSTS = [
 //   {
 //     type: "custom",
 //     name: "dispatch_analysts",
-//     description: "<tell the head WHEN to use it: fresh, validated scorecards for tickers the desk has no
+//     description: "<tell the head WHEN to use it: fresh, validated scorecards for assets the desk has no
 //                    current notes on in memory; each analyst also writes a research note to the shared
-//                    memory; not for companies whose notes already answer the question>",
+//                    memory; not for assets whose notes already answer the question>",
 //     input_schema: {
 //       type: "object",
 //       properties: {
-//         tickers: { type: "array", items: { type: "string" }, description: "Tickers to analyze, one analyst per ticker" },
+//         tickers: { type: "array", items: { type: "string" }, description: "Asset symbols (e.g. BTC, ETH) to analyze against USD, one analyst per asset" },
 //         focus: { type: "string", description: "Optional angle for the analysts to emphasize" },
 //       },
 //       required: ["tickers"],
@@ -67,7 +65,7 @@ const AGENT_TOOLSET = {
 };
 
 /**
- * Upload skills/edgartools as a custom Skill via the Skills API (multipart).
+ * Upload skills/kraken as a custom Skill via the Skills API (multipart).
  * Returns { skillId, version }.
  */
 async function uploadSkill(displayTitle: string): Promise<{ skillId: string; version: string }> {
@@ -82,7 +80,7 @@ async function uploadSkill(displayTitle: string): Promise<{ skillId: string; ver
     });
   for (const filePath of walk(SKILL_DIR)) {
     // The Skills API requires the upload folder to match the `name` in SKILL.md.
-    const relativePath = `edgartools-sec-data/${relative(SKILL_DIR, filePath).replaceAll("\\", "/")}`;
+    const relativePath = `kraken-market-data/${relative(SKILL_DIR, filePath).replaceAll("\\", "/")}`;
     form.append("files[]", new Blob([readFileSync(filePath)]), relativePath);
   }
 
@@ -113,7 +111,7 @@ function todoStub(message: string): { id: string } {
  * research with a plain system prompt. The same agent is upgraded in
  * provisionDesk; its id never changes.
  */
-export async function provisionHello(agentPrefix = "research-desk"): Promise<{ config: DeskConfig; steps: ProvisionStep[] }> {
+export async function provisionHello(agentPrefix = "crypto-desk"): Promise<{ config: DeskConfig; steps: ProvisionStep[] }> {
   const client = getClient();
   const cfg = loadConfig();
   const steps: ProvisionStep[] = [];
@@ -129,7 +127,7 @@ export async function provisionHello(agentPrefix = "research-desk"): Promise<{ c
           allow_package_managers: true,
           allow_mcp_servers: false,
         },
-        packages: { type: "packages", pip: ["edgartools", "pandas"] },
+        packages: { type: "packages", pip: ["requests", "pandas"] },
       },
     } as never);
     cfg.environment_id = environment.id;
@@ -158,17 +156,16 @@ export async function provisionHello(agentPrefix = "research-desk"): Promise<{ c
  * agent (a new version of the same agent) with its full prompt and the
  * dispatch_analysts custom tool.
  */
-export async function provisionDesk(agentPrefix = "research-desk"): Promise<{ config: DeskConfig; steps: ProvisionStep[] }> {
+export async function provisionDesk(agentPrefix = "crypto-desk"): Promise<{ config: DeskConfig; steps: ProvisionStep[] }> {
   const client = getClient();
   const cfg = loadConfig();
-  cfg.edgar_identity = edgarIdentity();
   const steps: ProvisionStep[] = [];
 
   if (!cfg.environment_id || !cfg.head_agent_id) {
     throw new Error("create your agent first (Setup → Say hello) — staffing the desk upgrades that same agent");
   }
 
-  const skill = await uploadSkill("edgartools — SEC EDGAR data access");
+  const skill = await uploadSkill("kraken — Kraken public market data");
   cfg.skill_id = skill.skillId;
   cfg.skill_version = skill.version;
   steps.push({ step: "skill", id: skill.skillId });
@@ -176,35 +173,35 @@ export async function provisionDesk(agentPrefix = "research-desk"): Promise<{ co
   const skillsRef = [{ type: "custom", skill_id: cfg.skill_id, version: "latest" }];
 
   const financials = await client.beta.agents.create({
-    name: `${agentPrefix}-financials-extractor`,
+    name: `${agentPrefix}-market-data-specialist`,
     model: MODEL,
-    system: loadPrompt("financials_specialist_system.md", { edgar_identity: cfg.edgar_identity }),
+    system: loadPrompt("market_data_specialist_system.md"),
     tools: [AGENT_TOOLSET],
     skills: skillsRef,
   } as never);
   cfg.financials_agent_id = financials.id;
-  steps.push({ step: "financials specialist", id: financials.id });
+  steps.push({ step: "market-data specialist", id: financials.id });
 
   const risk = await client.beta.agents.create({
-    name: `${agentPrefix}-risk-analyst`,
+    name: `${agentPrefix}-liquidity-analyst`,
     model: MODEL,
-    system: loadPrompt("risk_specialist_system.md", { edgar_identity: cfg.edgar_identity }),
+    system: loadPrompt("liquidity_specialist_system.md"),
     tools: [AGENT_TOOLSET],
     skills: skillsRef,
   } as never);
   cfg.risk_agent_id = risk.id;
-  steps.push({ step: "risk specialist", id: risk.id });
+  steps.push({ step: "liquidity specialist", id: risk.id });
 
-  // TODO(workshop-3): create the filing analyst as a multiagent coordinator.
+  // TODO(workshop-3): create the asset analyst as a multiagent coordinator.
   //
   // A "sub-agent" is just another agent listed on its coordinator's roster.
   // Replace the stub with `await client.beta.agents.create({ ... } as never)`,
   // passing exactly:
-  //   name: `${agentPrefix}-filing-analyst`,
+  //   name: `${agentPrefix}-asset-analyst`,
   //   model: MODEL,
-  //   system: loadPrompt("analyst_system.md", { edgar_identity: cfg.edgar_identity }),
+  //   system: loadPrompt("analyst_system.md"),
   //   tools: [AGENT_TOOLSET],
-  //   skills: skillsRef,                     // the edgartools manual uploaded above
+  //   skills: skillsRef,                     // the kraken manual uploaded above
   //   multiagent: {
   //     type: "coordinator",
   //     agents: [
@@ -213,15 +210,15 @@ export async function provisionDesk(agentPrefix = "research-desk"): Promise<{ co
   //       { type: "self" },
   //     ],
   //   },
-  const analyst = todoStub("TODO(workshop-3): create the filing-analyst coordinator agent in src/lib/provision.ts");
+  const analyst = todoStub("TODO(workshop-3): create the asset-analyst coordinator agent in src/lib/provision.ts");
   cfg.analyst_agent_id = analyst.id;
-  steps.push({ step: "filing analyst (coordinator)", id: analyst.id });
+  steps.push({ step: "asset analyst (coordinator)", id: analyst.id });
 
   const memoryStore = await client.beta.memoryStores.create({
     name: "desk-memory",
     description:
-      "The research desk's accumulated knowledge: one note per company per filing under /companies/<TICKER>/, " +
-      "plus desk-level memos under /memos/. Read before re-analyzing a company; notes persist across sessions.",
+      "The crypto desk's accumulated knowledge: one dated note per asset under /assets/<TICKER>/, " +
+      "plus desk-level memos under /memos/. Read before re-analyzing an asset; notes persist across sessions.",
   } as never);
   cfg.memory_store_id = memoryStore.id;
   steps.push({ step: "memory store", id: memoryStore.id });

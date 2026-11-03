@@ -10,16 +10,16 @@ import { join } from "node:path";
 
 import type Anthropic from "@anthropic-ai/sdk";
 
-import { DEFAULT_CONCURRENCY, OUTPUTS_DIR, edgarIdentity, loadConfig, sessionUrl, type DeskConfig } from "./config";
+import { DEFAULT_CONCURRENCY, OUTPUTS_DIR, loadConfig, sessionUrl, type DeskConfig } from "./config";
 import { logEvent } from "./logger";
 import { loadPrompt } from "./prompts";
 import { validateScorecard, type Scorecard } from "./scorecard";
 import { defineOutcome, downloadOutputs, drainUntilIdle } from "./sessions";
 
 export const MEMORY_MOUNT_INSTRUCTIONS =
-  "The desk's shared research memory. Before analyzing a company, read your prior notes for it under " +
-  "/companies/<TICKER>/ if any exist. After analyzing, write or update one note per filing at " +
-  "/companies/<TICKER>/<fiscal-period>-<form>.md using the note template from your instructions.";
+  "The desk's shared research memory. Before analyzing an asset, read your prior notes for it under " +
+  "/assets/<TICKER>/ if any exist. After analyzing, write one dated note at " +
+  "/assets/<TICKER>/<YYYY-MM-DD>.md using the note template from your instructions.";
 
 // Tickers come from user input and from the head agent's tool calls, and they
 // become directory names under outputs/ — accept only plausible symbols.
@@ -74,7 +74,7 @@ export async function analyzeTicker(
     const session = await client.beta.sessions.create({
       agent: cfg.analyst_agent_id,
       environment_id: cfg.environment_id,
-      title: `Filing analysis: ${record.ticker}`,
+      title: `Market analysis: ${record.ticker}/USD`,
       metadata: { ticker: record.ticker, kind: "analysis" },
       resources: [
         {
@@ -91,8 +91,7 @@ export async function analyzeTicker(
 
     const description = loadPrompt("analyze_task.md", {
       ticker: record.ticker,
-      focus: focus || "general fundamentals and risk",
-      edgar_identity: edgarIdentity(),
+      focus: focus || "trend, volatility and liquidity",
     });
     const rubric = loadPrompt("analyze_rubric.md", { ticker: record.ticker });
 

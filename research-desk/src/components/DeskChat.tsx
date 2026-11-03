@@ -137,8 +137,8 @@ export default function DeskChat({ provisioned }: { provisioned: boolean }) {
         {sessionId && <span className="id-chip">{sessionId}</span>}
       </div>
       <p className="muted">
-        Ask the head of research for what you need — e.g. &quot;Sweep NVDA, AMD and MU and rank them by margin
-        durability.&quot; When it needs fresh work it dispatches analysts; the fan-out runs on this server and keeps
+        Ask the head of research for what you need — e.g. &quot;Look at BTC, ETH and SOL against USD and rank them
+        by trend and liquidity.&quot; When it needs fresh work it dispatches analysts; the fan-out runs on this server and keeps
         going even if you close this tab.
       </p>
 

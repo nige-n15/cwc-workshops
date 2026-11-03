@@ -11,33 +11,34 @@
  * clear problems reported for anything missing or mistyped.
  */
 
-export const GUIDANCE_TONES = ["positive", "neutral", "cautious", "none"] as const;
+export const TRENDS = ["uptrend", "downtrend", "range"] as const;
 export const CONFIDENCE_LEVELS = ["low", "medium", "high"] as const;
 
 const MAX_SHORT_TEXT = 300;
 const MAX_LIST_ITEMS = 5;
 
+/** One asset against USD on Kraken. `ticker` is the common symbol (BTC, DOGE), `pair` the Kraken pair queried. */
 export interface Scorecard {
   ticker: string;
-  company_name: string;
-  filing_form: string;
-  fiscal_period: string;
-  filing_date: string;
-  revenue_usd_m: number;
-  revenue_yoy_pct: number;
-  gross_margin_pct: number;
-  operating_margin_pct: number;
-  guidance_tone: string;
-  top_risks: string[];
-  risk_factor_changes: string[];
+  asset_name: string;
+  pair: string;
+  as_of: string;
+  price_usd: number;
+  return_7d_pct: number;
+  return_30d_pct: number;
+  return_90d_pct: number;
+  volatility_30d_pct: number;
+  volume_24h_usd_k: number;
+  spread_bps: number;
+  depth_1pct_usd_k: number;
+  trend: string;
+  key_risks: string[];
+  changes_since_last_note: string[];
   red_flags: string[];
   one_line_thesis: string;
   confidence: string;
   memory_note_path: string;
-  embedded_instructions_flag: boolean;
-  net_cash_usd_m?: number;
-  inventory_yoy_pct?: number;
-  rnd_pct_of_revenue?: number;
+  max_drawdown_90d_pct?: number;
   data_caveats?: string;
 }
 
@@ -45,28 +46,28 @@ type FieldKind = "string" | "number" | "boolean" | "list";
 
 export const REQUIRED_FIELDS: Record<string, FieldKind> = {
   ticker: "string",
-  company_name: "string",
-  filing_form: "string",
-  fiscal_period: "string",
-  filing_date: "string",
-  revenue_usd_m: "number",
-  revenue_yoy_pct: "number",
-  gross_margin_pct: "number",
-  operating_margin_pct: "number",
-  guidance_tone: "string",
-  top_risks: "list",
-  risk_factor_changes: "list",
+  asset_name: "string",
+  pair: "string",
+  as_of: "string",
+  price_usd: "number",
+  return_7d_pct: "number",
+  return_30d_pct: "number",
+  return_90d_pct: "number",
+  volatility_30d_pct: "number",
+  volume_24h_usd_k: "number",
+  spread_bps: "number",
+  depth_1pct_usd_k: "number",
+  trend: "string",
+  key_risks: "list",
+  changes_since_last_note: "list",
   red_flags: "list",
   one_line_thesis: "string",
   confidence: "string",
   memory_note_path: "string",
-  embedded_instructions_flag: "boolean",
 };
 
 export const OPTIONAL_FIELDS: Record<string, FieldKind> = {
-  net_cash_usd_m: "number",
-  inventory_yoy_pct: "number",
-  rnd_pct_of_revenue: "number",
+  max_drawdown_90d_pct: "number",
   data_caveats: "string",
 };
 
@@ -111,8 +112,8 @@ export function validateScorecard(payload: unknown): { scorecard: Scorecard | nu
     }
   }
 
-  if (!GUIDANCE_TONES.includes(clean.guidance_tone as (typeof GUIDANCE_TONES)[number])) {
-    problems.push(`guidance_tone must be one of ${GUIDANCE_TONES.join(", ")}`);
+  if (!TRENDS.includes(clean.trend as (typeof TRENDS)[number])) {
+    problems.push(`trend must be one of ${TRENDS.join(", ")}`);
   }
   if (!CONFIDENCE_LEVELS.includes(clean.confidence as (typeof CONFIDENCE_LEVELS)[number])) {
     problems.push(`confidence must be one of ${CONFIDENCE_LEVELS.join(", ")}`);

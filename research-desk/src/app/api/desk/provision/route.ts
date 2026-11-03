@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   if (rejected) return rejected;
   return handle("desk.provision", async () => {
     const body = (await request.json().catch(() => ({}))) as { prefix?: string; scope?: string };
-    const prefix = body.prefix?.trim() || "research-desk";
+    const prefix = body.prefix?.trim() || "crypto-desk";
     return body.scope === "hello" ? provisionHello(prefix) : provisionDesk(prefix);
   });
 }

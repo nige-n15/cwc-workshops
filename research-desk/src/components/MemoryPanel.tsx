@@ -72,7 +72,7 @@ export default function MemoryPanel({ provisioned }: { provisioned: boolean }) {
         </div>
       </div>
       <p className="muted">
-        Everything the desk has learned, as files: one note per company per filing, plus desk memos. Notes persist
+        Everything the desk has learned, as files: one dated note per asset, plus desk memos. Notes persist
         across sessions and runs — that&apos;s what makes the desk compound.
       </p>
 
@@ -80,7 +80,7 @@ export default function MemoryPanel({ provisioned }: { provisioned: boolean }) {
 
       {!showVersions && (
         <div className="list">
-          {entries.length === 0 && <div className="empty">No notes yet — analyze a company and come back.</div>}
+          {entries.length === 0 && <div className="empty">No notes yet — analyze an asset and come back.</div>}
           {entries.map((entry) => (
             <div
               key={entry.path}

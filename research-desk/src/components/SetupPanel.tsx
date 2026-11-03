@@ -12,7 +12,7 @@ export default function SetupPanel({ status, onProvisioned }: { status: DeskStat
   const [error, setError] = useState("");
   const [steps, setSteps] = useState<Array<{ step: string; id: string }>>([]);
 
-  const envReady = status.credential_present && status.edgar_identity_present;
+  const envReady = status.credential_present;
 
   const provision = async (scope: "hello" | "desk") => {
     setBusy(scope);
@@ -46,14 +46,6 @@ export default function SetupPanel({ status, onProvisioned }: { status: DeskStat
           <div>Server credential (ANTHROPIC_API_KEY / ANTHROPIC_AUTH_TOKEN)</div>
           <span className={`pill ${status.credential_present ? "succeeded" : "failed"}`}>
             {status.credential_present ? "present" : "missing"}
-          </span>
-        </div>
-        <div className="card">
-          <div>
-            EDGAR identity (EDGAR_IDENTITY) <span className="hint">the SEC requires a contact identity</span>
-          </div>
-          <span className={`pill ${status.edgar_identity_present ? "succeeded" : "failed"}`}>
-            {status.edgar_identity_present ? "present" : "missing"}
           </span>
         </div>
         <div className="card">
