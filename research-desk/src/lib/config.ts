@@ -21,7 +21,7 @@ export const PROMPTS_DIR = join(REPO_ROOT, "prompts");
 export const SKILL_DIR = join(REPO_ROOT, "skills", "kraken");
 export const DEFAULT_WATCHLIST = join(REPO_ROOT, "watchlists", "top10-usd.txt");
 
-export const MODEL = "claude-opus-4-8";
+export const MODEL = "claude-opus-5-5";
 export const DEFAULT_CONCURRENCY = Number(process.env.DESK_CONCURRENCY ?? 4);
 
 export interface DeskConfig {
